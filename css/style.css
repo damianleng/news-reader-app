@@ -1,0 +1,5 @@
+.disabled-link {
+    pointer-events: none; /* Prevent interactions */
+    color: grey; /* Change color to indicate it's disabled */
+    cursor: not-allowed; /* Show a not-allowed cursor */
+  }

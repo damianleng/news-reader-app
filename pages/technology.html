@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ff0000" />
+    <title>NewsReader</title>
+
+    <!-- Materialize CSS Style sheet -->
+    <link rel="stylesheet" href="/css/materialize.min.css" />
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Import Google Icon Font -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body data-category="technology">
+    <header>
+      <!-- Navigation bars for bigger screens -->
+       <nav class="z-depth-0 red darken-2 nav-wrapper">
+        <div class="container">
+          <a href="/" class="brand-logo">
+            <i class="material-icons">tap_and_play</i>News
+          </a>
+          <!-- Hamburger Menu for medium and small screens -->
+          <a href="#" data-target="mobile-menu" class="sidenav-trigger right hide-on-med-and-up black-text"
+            aria-label="Open side menu">
+            <i class="material-icons white-text">menu</i>
+          </a>
+          <!-- Navbar Links for large screens -->
+          <ul class="right hide-on-small-and-down">
+            <li>
+              <a href="/" class="waves-effect">General</a>
+            </li>
+            <li>
+              <a href="/pages/health.html" class="waves-effect">Health</a>
+            </li>
+            <li>
+              <a href="/pages/science.html" class="waves-effect">
+                Science</a>
+            </li>
+            <li>
+              <a href="/pages/sports.html" class="waves-effect">
+                Sports</a>
+            </li>
+            <li class="active">
+              <a href="/pages/technology.html" class="waves-effect">
+                Technology</a>
+            </li>
+            <li>
+              <a href="/pages/entertainment.html" class="waves-effect">
+                Entertainment</a>
+            </li>
+            <li>
+              <a href="/pages/my_news.html" class="waves-effect">
+                My News</a>
+            </li>
+          </ul>
+        </div>
+       </nav>
+    </header>
+
+    <aside>
+      <!-- Sidenav for small and medium screens -->
+      <ul class="sidenav" id="mobile-menu">
+        <li><a class="subheader">News</a></li>
+        <li>
+          <a href="/" class="waves-effect grey-text text-darken-4">General</a>
+        </li>
+        <li>
+          <a href="/pages/health.html" class="waves-effect grey-text text-darken-4">Health</a>
+        </li>
+        <li>
+          <a href="/pages/science.html" class="waves-effect grey-text text-darken-4">Science</a>
+        </li>
+        <li>
+          <a href="/pages/sports.html" class="waves-effect grey-text text-darken-4">Sports</a>
+        </li>
+        <li class="active">
+          <a href="/pages/technology.html" class="waves-effect grey-text text-darken-4">Technology</a>
+        </li>
+        <li>
+          <a href="/pages/entertainment.html" class="waves-effect grey-text text-darken-4">Entertainment</a>
+        </li>
+        <li>
+          <div class="divider"></div>
+        </li>
+        <li>
+          <a href="/pages/my_news.html" class="waves-effect grey-text text-darken-4">My News</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main>
+      <div class="container">
+        <div class="row news-container">
+          <!-- <div class="col s12 l4">
+            <div class="card">
+              <div class="card-image">
+                <img src="https://placehold.co/600x400/png" alt="" />
+              </div>
+              <div class="card-content">
+                <span class="card-title"><a class="red-text" href="/pages/read.html">News Title</a></span>
+                <p>
+                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                  Voluptatum voluptas quasi nulla adipisci molestiae animi nam
+                  deserunt, perferendis dolore eligendi!
+                </p>
+              </div>
+              <div class="card-action">
+                <a href="/pages/read.html" class="waves-effect waves-red red darken-2 btn-small">Read</a>
+                <a class="waves-effect waves-red red darken-2 btn-small"><i class="material-icons right">download</i>Download</a>
+              </div>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </main>
+
+    <script src="/js/ui.js"></script>
+    <script src="/js/newsAPI.js"></script>
+    <script src="/js/materialize.min.js"></script>
+  </body>
+</html>
