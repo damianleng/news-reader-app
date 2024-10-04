@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // api key
   // const apiKey = "aae057c0722543fab060697044800783";
-  const apiKey = "dc0394e3e50844bcb37ecae471dc56a5"
+  const apiKey = "dc0394e3e50844bcb37ecae471dc56a5";
   const category = document.body.getAttribute("data-category");
 
   // asynchronous function to fetch the news data
