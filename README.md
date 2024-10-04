@@ -22,8 +22,7 @@ The application utilizes [NewsAPI](https://newsapi.org/) to fetch the latest new
 ### API Key
 - The project requires an API key from NewsAPI. You can obtain a free API key by signing up at [NewsAPI](https://newsapi.org/register).
 - The API key is used to authenticate requests made to NewsAPI for fetching news articles.
+- Open the newsAPI.js file and replace the apiKey variable with your API key.
 
-### Example API Call
-The application fetches articles using the following API endpoint:
 ```javascript
-const response = await fetch(`https://newsapi.org/v2/top-headlines?category=${category}&apiKey=${apiKey}`);
+const apiKey = 'YOUR_API_KEY_HERE';
