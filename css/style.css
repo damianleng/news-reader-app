@@ -3,3 +3,16 @@
     color: grey; /* Change color to indicate it's disabled */
     cursor: not-allowed; /* Show a not-allowed cursor */
   }
+
+/* Add padding to each card */
+.card.large {
+  padding: 20px; /* Adds internal padding for breathing room */
+  margin-bottom: 20px; /* Adds space between each card */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+  border-radius: 8px; /* Rounds the card edges slightly */
+}
+
+/* Optional: Add padding to the card content for better spacing */
+.card-content {
+  padding: 15px;
+}

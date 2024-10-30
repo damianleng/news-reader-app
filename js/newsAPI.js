@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log(data);
       displayNews(data.articles);
     } catch (error) {
       console.error("Error fetching: ", error);
@@ -26,22 +25,59 @@ document.addEventListener("DOMContentLoaded", () => {
     newsContainer.innerHTML = "";
 
     article.forEach((article) => {
-
-     const isRemoved = !article.title || article.title === "[Removed]" || !article.source.name || article.source.name === "[Removed]"
+      const isRemoved =
+        !article.title ||
+        article.title === "[Removed]" ||
+        !article.source.name ||
+        article.source.name === "[Removed]";
 
       const newsCard = `
         <div class="col s12 l4">
             <div class="card large">
               <div class="card-image">
-                <img src="${article.urlToImage ? article.urlToImage : 'https://placehold.co/600x400/png'}" alt="" />
+                <img src="${
+                  article.urlToImage
+                    ? article.urlToImage
+                    : "https://placehold.co/600x400/png"
+                }" alt="" />
               </div>
               <div class="card-content">
-                <span class="card-title"><a class="red-text ${isRemoved ? 'disabled-link' : ''} " href="/pages/read.html?title=${encodeURIComponent(article.title)}&author=${encodeURIComponent(article.author)}&description=${encodeURIComponent(article.description)}&source=${encodeURIComponent(article.source.name)}&urlToImage=${encodeURIComponent(article.urlToImage)}&url=${encodeURIComponent(article.url)}">${article.source.name}</a></span>
+                <span class="card-title"><a class="red-text ${
+                  isRemoved ? "disabled-link" : ""
+                } " href="/pages/read.html?title=${encodeURIComponent(
+        article.title
+      )}&author=${encodeURIComponent(
+        article.author
+      )}&description=${encodeURIComponent(
+        article.description
+      )}&source=${encodeURIComponent(
+        article.source.name
+      )}&urlToImage=${encodeURIComponent(
+        article.urlToImage
+      )}&url=${encodeURIComponent(article.url)}">${
+        article.source.name
+      }</a></span>
                 <p>${article.title}</p>
               </div>
               <div class="card-action">
-                <a href="/pages/read.html?title=${encodeURIComponent(article.title)}&author=${encodeURIComponent(article.author)}&description=${encodeURIComponent(article.description)}&source=${encodeURIComponent(article.source.name)}&urlToImage=${encodeURIComponent(article.urlToImage)}&url=${encodeURIComponent(article.url)}" class="waves-effect waves-red red darken-2 btn-small ${isRemoved ? 'disabled' : ''}">Read</a>
-                <a class="waves-effect waves-red red darken-2 btn-small ${isRemoved ? 'disabled' : ''}"><i class="material-icons right">download</i>Download</a>
+                <a href="/pages/read.html?title=${encodeURIComponent(
+                  article.title
+                )}&author=${encodeURIComponent(
+        article.author
+      )}&description=${encodeURIComponent(
+        article.description
+      )}&source=${encodeURIComponent(
+        article.source.name
+      )}&urlToImage=${encodeURIComponent(
+        article.urlToImage
+      )}&url=${encodeURIComponent(
+        article.url
+      )}" class="waves-effect waves-red red btn-small ${
+        isRemoved ? "disabled" : ""
+      }">Read</a>
+                <a class="waves-effect waves-red red btn-small ${
+                  isRemoved ? "disabled" : ""
+                }" style="margin-left: 5px;"><i class="material-icons right">download</i>Download</a>
               </div>
             </div>
           </div>
@@ -54,12 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function getTimeDifference(publishedAt) {
     const publishedDate = new Date(publishedAt);
     const currentDate = new Date();
-    
+
     const timeDiff = Math.abs(currentDate - publishedDate); // Difference in milliseconds
     const minutes = Math.floor(timeDiff / (1000 * 60)); // Convert milliseconds to minutes
     const hours = Math.floor(timeDiff / (1000 * 60 * 60)); // Convert milliseconds to hours
     const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
-  
+
     if (minutes < 60) {
       return `${minutes} minutes ago`;
     } else if (hours < 24) {

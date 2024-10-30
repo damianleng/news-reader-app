@@ -26,3 +26,38 @@ The application utilizes [NewsAPI](https://newsapi.org/) to fetch the latest new
 
 ```javascript
 const apiKey = 'YOUR_API_KEY_HERE';
+```
+
+### Service Worker
+The service worker in this project enables offline functionality by caching essential assets, ensuring users can access previously loaded news articles without a network connection.
+- **Install**: During the install event, the service worker caches all specified assets (ASSETS_TO_CACHE). These include HTML pages, CSS, JavaScript files, and other critical resources required for offline access.
+- **Activate**: In the activate event, the service worker removes old caches that are no longer needed, ensuring users have the latest assets.
+- **Fetch**: The service worker intercepts network requests and serves cached assets if available. If an asset isn't in the cache, it tries to fetch it from the network and stores it in the cache for future requests.
+
+### Caching Strategy
+- **Cache First**: If a requested asset is cached, it serves directly from the cache.
+- **Network Fallback**: If the asset isn't cached, it fetches from the network and caches it for future use. This strategy ensures fast loading times and allows offline access.
+
+### Manifest File
+The manifest.json file is essential for configuring the app’s appearance and behavior on mobile devices when installed. This configuration allows the application to be added to a user's home screen, providing a more app-like experience.
+
+```
+{
+  "name": "News Reader",
+  "short_name": "NR",
+  "description": "Read latest fresh news",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFEBEE",
+  "theme_color": "#263238",
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/img/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    ...
+  ]
+}
+```
