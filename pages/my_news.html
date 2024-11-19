@@ -11,6 +11,8 @@
 
     <link rel="stylesheet" href="/css/style.css">
 
+    <link rel="icon" href="/img/icons/favicon.ico" type="image/png">
+
     <!-- Import Google Icon Font -->
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -18,7 +20,7 @@
     />
   </head>
 
-  <body>
+  <body class="my-news-page">
     <header>
       <!-- Navigation bars for bigger screens -->
        <nav class="z-depth-0 red darken-2 nav-wrapper">
@@ -98,7 +100,7 @@
     <main>
       <div class="container">
         <div class="row news-container">
-          <div class="col s12 l4">
+          <!-- <div class="col s12 l4">
             <div class="card">
               <div class="card-image">
                 <img src="https://placehold.co/600x400/png" alt="" />
@@ -115,8 +117,8 @@
                 <a href="/pages/read.html" class="waves-effect waves-red red darken-2 btn-small">Read</a>
               </div>
             </div>
-          </div>
-          <div class="col s12 l4">
+          </div> -->
+          <!-- <div class="col s12 l4">
             <div class="card">
               <div class="card-image">
                 <img src="https://placehold.co/600x400/png" alt="" />
@@ -133,12 +135,26 @@
                 <a href="/pages/read.html" class="waves-effect waves-red red darken-2 btn-small">Read</a>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
 
-    <script src="/js/ui.js"></script>z
+    <!-- Modal Structure -->
+    <div id="note-modal" class="modal">
+      <div class="modal-content red-text">
+        <h4>Add Note</h4>
+        <textarea id="note-content" class="materialize-textarea" placeholder="Write your note here..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <a class="modal-close red-text waves-effect waves-green btn-flat save-btn">Save</a>
+      </div>
+    </div>
+
     <script src="/js/materialize.min.js"></script>
+    <script type="module" src="/js/ui.js"></script>
+    <script type="module" src="/js/newsAPI.js"></script>
+    <script type="module" src="/js/my_news.js"></script>
+    <script type="module" src="/js/firebaseDB.js"></script>
   </body>
 </html>

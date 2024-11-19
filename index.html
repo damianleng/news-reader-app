@@ -126,8 +126,21 @@
       </div>
     </main>
 
-    <script src="/js/ui.js"></script>
-    <script src="/js/newsAPI.js"></script>
+    <!-- Modal Structure -->
+    <div id="note-modal" class="modal">
+      <div class="modal-content red-text">
+        <h4>Add Note</h4>
+        <textarea id="note-content" class="materialize-textarea" placeholder="Write your note here..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close red-text waves-effect waves-green btn-flat save-btn">Save</a>
+      </div>
+    </div>
+
+
     <script src="/js/materialize.min.js"></script>
+    <script type="module" src="/js/ui.js"></script>
+    <script type="module" src="/js/newsAPI.js"></script>
+    <script type="module" src="/js/firebaseDB.js"></script>
   </body>
 </html>
