@@ -323,110 +323,52 @@ async function addNews(news) {
   return { ...news, id: newsId };
 }
 
-// Sync IndexedDB data with Firebase
 async function syncNews() {
-  if (!navigator.onLine) return; // Exit if the device is offline
-
   const db = await createDB();
-
-  // Load all news from IndexedDB
   const tx = db.transaction("news", "readonly");
   const store = tx.objectStore("news");
-  const indexedDBNews = await store.getAll();
+  const news = await store.getAll();
   await tx.done;
 
-  // Load all news from Firebase
-  const firebaseNews = await getNewsFromFirebase();
+  console.log("syncing news");
 
-  // Create maps for easier comparison
-  const indexedDBNewsMap = new Map(indexedDBNews.map(item => [item.id, item]));
-  const firebaseNewsMap = new Map(firebaseNews.map(item => [item.id, item]));
+  for (const article of news) {
+    console.log(article.comments);
+    if (!article.synced && navigator.onLine) {
+      try {
+        const newsToSync = {
+          author: article.author,
+          comments: article.comments,
+          content: article.content,
+          description: article.description,
+          publishedAt: article.publishedAt,
+          source: article.source,
+          title: article.title,
+          url: article.url,
+          urlToImage: article.urlToImage,
+        };
+        const existingNews = await getNewsFromFirebaseById(article.id);
 
-  // Sync additions and updates from IndexedDB to Firebase
-  for (const [id, newsItem] of indexedDBNewsMap) {
-    if (!firebaseNewsMap.has(id)) {
-      // News item exists in IndexedDB but not in Firebase, add it
-      await addNewsToFirebase(newsItem);
-    } else {
-      // News item exists in both, update Firebase if necessary
-      const firebaseItem = firebaseNewsMap.get(id);
-      if (newsItem.comments !== firebaseItem.comments) {
-        await updateCommentsToFirebase(id, { comments: newsItem.comments });
+        if (existingNews) {
+          await updateCommentsToFirebase(article.id, {
+            comments: article.comments,
+          });
+          console.log(`Updated article with ID: ${article.id} in Firebase.`);
+        } else {
+          const savedNews = await addNewsToFirebase(newsToSync);
+          article.id = savedNews.id;
+          console.log(`Added new article to Firebase with ID: ${savedNews.id}`);
+        }
+        const txUpdate = db.transaction("news", "readwrite");
+        const storeUpdate = txUpdate.objectStore("news");
+        await storeUpdate.put({ ...article, synced: true });
+        await txUpdate.done;
+      } catch (error) {
+        console.error("Error syncing news:", error);
       }
     }
   }
-
-  // Sync deletions from Firebase
-  for (const id of firebaseNewsMap.keys()) {
-    if (!indexedDBNewsMap.has(id)) {
-      // News item exists in Firebase but not in IndexedDB, delete it
-      await deleteNewsFromFirebase(id);
-    }
-  }
-
-  console.log("Sync complete: IndexedDB is now in sync with Firebase.");
 }
-
-
-// Sync task from indexDB to firebase
-// async function syncNews() {
-//   const db = await createDB();
-//   const tx = db.transaction("news", "readonly");
-//   const store = tx.objectStore("news");
-
-//   // Fetch all unsynced articles from IndexedDB
-//   const articles = await store.getAll();
-//   await tx.done;
-
-//   for (const article of articles) {
-//     // Check if the article is unsynced and the device is online
-//     if (navigator.onLine) {
-//       try {
-//         // Prepare the article data for syncing (excluding the local `id`)
-//         const articleToSync = {
-//           title: article.title,
-//           url: article.url,
-//           comments: article.comments,
-//           source: article.source,
-//           // Add any other relevant fields from the article
-//         };
-
-//         let savedArticle;
-
-//         // Check if the article already exists in Firebase
-//         const existingArticle = await getNewsFromFirebaseById(article.id);
-
-//         if (existingArticle) {
-//           // If the article exists in Firebase, update it
-//           await updateCommentsToFirebase(article.id, {
-//             comments: article.comments,
-//           });
-//           savedArticle = { id: article.id }; // Use the existing Firebase ID
-//         } else {
-//           // If the article does not exist, add it to Firebase
-//           savedArticle = await addNewsToFirebase(articleToSync);
-//         }
-
-//         // Mark the article as synced and update the ID with the Firebase ID
-//         const txUpdate = db.transaction("news", "readwrite");
-//         const storeUpdate = txUpdate.objectStore("news");
-
-//         // Delete the old article with the local ID
-//         await storeUpdate.delete(article.id);
-
-//         // Add the article back with the Firebase ID and synced status
-//         await storeUpdate.put({
-//           ...article,
-//           id: savedArticle.id,
-//           synced: true,
-//         });
-//         await txUpdate.done;
-//       } catch (error) {
-//         console.error("Error syncing news:", error);
-//       }
-//     }
-//   }
-// }
 
 // Delete news from indexDB
 async function deleteNews(id) {
@@ -446,7 +388,6 @@ async function deleteNews(id) {
   const store = tx.objectStore("news");
 
   try {
-    // Delete task by url
     await store.delete(id);
   } catch (error) {
     console.error("error deleting news from indexedDB: ", error);
@@ -468,12 +409,13 @@ async function deleteNews(id) {
 // Load news with Transaction
 export async function loadNews() {
   const db = await createDB();
-
   const newsContainer = document.querySelector(".news-container");
   newsContainer.innerHTML = ""; // clear the container
 
   if (navigator.onLine) {
     const firebaseNews = await getNewsFromFirebase();
+    const tx = db.transaction("news", "readwrite");
+    const store = tx.objectStore("news");
 
     if (firebaseNews.length === 0) {
       newsContainer.innerHTML = `
@@ -484,103 +426,102 @@ export async function loadNews() {
       return;
     }
 
-    // Start a transaction to read and write from IndexedDB
-    const tx = db.transaction("news", "readwrite");
-    const store = tx.objectStore("news");
-
-    // Fetch all news from IndexedDB
-    const existingNews = await store.getAll();
-
-    // Create a map to track existing news in IndexedDB
-    const existingNewsMap = new Map();
-    for (const news of existingNews) {
-      existingNewsMap.set(news.id, news);
-    }
-
-    // Merge Firebase data with IndexedDB data
     for (const article of firebaseNews) {
-      if (existingNewsMap.has(article.id)) {
-        // If the article exists in IndexedDB, preserve its comments and sync status
-        const existingArticle = existingNewsMap.get(article.id);
-        article.comments = existingArticle.comments || "";
-        article.synced = true;
-      } else {
-        // If the article is new, mark it as synced
-        article.synced = true;
-      }
-
-      // Store or update the article in IndexedDB
-      await store.put(article);
+      await store.put({ ...article, synced: true });
     }
-
-    // complete the transaction
-    await tx.done;
-
-    // display the news to the UI
     displayNews(firebaseNews);
+    await tx.done;
   } else {
+    console.log("Offline");
     // Offline: Load news from IndexedDB
     const tx = db.transaction("news", "readonly");
     const store = tx.objectStore("news");
 
     // Get all news from IndexedDB
     const news = await store.getAll();
+    console.log(news);
 
     // Complete the transaction
     await tx.done;
+    displayNews(news);
 
-    if (news.length === 0) {
-      newsContainer.innerHTML = `
-      <p class="card-panel red lighten-4 red-text text-darken-4">
-        <i class="material-icons left">error</i>
-        No saved news yet. Start adding your favorite articles!
-      </p>`;
-    } else {
-      displayNews(news);
-    }
+    // if (news.length === 0) {
+    //   newsContainer.innerHTML = `
+    //   <p class="card-panel red lighten-4 red-text text-darken-4">
+    //     <i class="material-icons left">error</i>
+    //     No saved news yet. Start adding your favorite articles!
+    //   </p>`;
+    // } else {
+    //   displayNews(news);
+    // }
   }
 }
 
 // Function to update comments of a news article
 async function updateComments(id, newComment) {
-  try {
-    const db = await createDB();
-
-    // start a transaction
+  const db = await createDB();
+  const updatedData = { comments: newComment };
+  if (navigator.onLine) {
+    try {
+      await updateCommentsToFirebase(id, updatedData);
+    } catch (error) {
+      console.error("Error updating comment in Firebase: ", error);
+    }
+  } else {
     const tx = db.transaction("news", "readwrite");
     const store = tx.objectStore("news");
 
-    // get the existing news item
     const newsItem = await store.get(id);
-
+    console.log(newsItem);
     if (newsItem) {
-      newsItem.comments = newComment;
-
+      newsItem.comments = updatedData.comments;
+      newsItem.synced = false;
       await store.put(newsItem);
       console.log("Comment updated successfully in IndexedDB!");
-
-      if (navigator.onLine) {
-        try {
-          const updatedData = { comments: newsItem.comments };
-
-          await updateCommentsToFirebase(newsItem.id, updatedData);
-          console.log("Comment updated successfully in Firebase!");
-        } catch (error) {
-          console.error("Error updating comment in Firebase: ", error);
-        }
-      } else {
-        console.log(
-          "Offline: Comment update will be synced to Firebase when online."
-        );
-      }
-    } else {
-      console.error("News item not found in IndexedDB!");
     }
     await tx.done;
-  } catch (error) {
-    console.error("Error adding or updating comment: ", error);
   }
 }
+
+// async function updateComments(id, newComment) {
+//   try {
+//     const db = await createDB();
+
+//     // start a transaction
+//     const tx = db.transaction("news", "readwrite");
+//     const store = tx.objectStore("news");
+
+//     // get the existing news item
+//     const newsItem = await store.get(id);
+
+//     if (newsItem) {
+//       newsItem.comments = newComment;
+
+//       await store.put(newsItem);
+//       console.log("Comment updated successfully in IndexedDB!");
+
+//       if (navigator.onLine) {
+//         try {
+//           const updatedData = { comments: newsItem.comments };
+
+//           await updateCommentsToFirebase(newsItem.id, updatedData);
+//           console.log("Comment updated successfully in Firebase!");
+//         } catch (error) {
+//           console.error("Error updating comment in Firebase: ", error);
+//         }
+//       } else {
+//         console.log(
+//           "Offline: Comment update will be synced to Firebase when online."
+//         );
+//       }
+//     } else {
+//       console.error("News item not found in IndexedDB!");
+//     }
+//     await tx.done;
+//   } catch (error) {
+//     console.error("Error adding or updating comment: ", error);
+//   }
+// }
 
 // Function to check storage usage
 async function checkStorageUsage() {
@@ -602,7 +543,7 @@ async function checkStorageUsage() {
       const storageWarning = document.querySelector("#storage-warning");
       if (storageWarning) {
         storageWarning.textContent =
-          "Warning: You are running low on storage space. Please delete old tasks to free up space.";
+          "Warning: You are running low on storage space. Please delete old news to free up space.";
         storageWarning.style.display = "block";
       }
     } else {
