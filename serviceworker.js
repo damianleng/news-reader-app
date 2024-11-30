@@ -1,4 +1,4 @@
-const CACHE_NAME = "news-reader-v3.1";
+const CACHE_NAME = "news-reader-v3.5.2";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -9,10 +9,14 @@ const ASSETS_TO_CACHE = [
   "/pages/science.html",
   "/pages/sports.html",
   "/pages/technology.html",
+  "/pages/auth.html",
   "/css/materialize.min.css",
   "/js/materialize.min.js",
   "/js/ui.js",
   "/js/newsAPI.js",
+  "/js/auth.js",
+  "/js/signIn.js",
+  "/js/my_news.js"
 ];
 
 // Install all cached files

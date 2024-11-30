@@ -92,3 +92,50 @@ The app includes a robust synchronization mechanism to keep IndexedDB and Fireba
 - When the Device is Online: The syncNews() function checks for unsynced articles in IndexedDB and syncs them with Firebase.
 - When the Device is Offline: Articles and comments are stored in IndexedDB and marked as unsynced. They are synced when the device goes online.
 - Handling Deletions: Deleted articles in IndexedDB are also deleted from Firebase when the device reconnects.
+
+## Data Authentication and User Data
+This project ensures robust security and privacy through user authentication and proper handling of user-specific data. Each user's data is securely isolated, ensuring only authorized access to personal articles and comments.
+
+### User Authentication
+The application uses Firebase Authentication to securely identify users and protect their data. The following features ensure secure access:
+- Email and Password Authentication: Users sign up or log in with their email and password, which is securely handled by Firebase.
+- Auth State Management: The app listens for authentication state changes using Firebase’s onAuthStateChanged to dynamically adjust the UI and fetch user-specific data.
+- Persistent Sessions: Firebase Authentication maintains user sessions, so users remain logged in across page reloads.
+
+### User-Specific Data Management
+The app securely manages user data by associating all stored articles, comments, and notes with a unique user ID (uid), ensuring data separation between accounts.
+
+### Data Flow
+- Saving Data: Articles and comments saved by the user are stored in Firebase Firestore under a path scoped to the user's uid (/users/{uid}/news).
+- Data is also stored locally in IndexedDB to enable offline access, with each entry tagged with the user's uid.
+- On login, the app fetches only the data associated with the authenticated user from Firebase and IndexedDB.
+- Offline Mode: Articles and comments are stored locally in IndexedDB and marked as unsynced.
+- Online Mode: Unsynced data is uploaded to Firebase when the device reconnects, ensuring the database remains up to date.
+- Articles deleted by the user are removed from both Firebase and IndexedDB.
+
+## Firebase Security Rules
+
+Firebase’s security rules are configured to ensure that users can only access their own data:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /news/{newsId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
+
+## Key Features of Security Rules:
+- Authentication Required: Only authenticated users can read or write data.
+- User Data Isolation: Users can access only their own data (request.auth.uid == userId).
+
+## User Experience
+With these features, the NewsReader app provides:
+- Secure Access: Each user has exclusive access to their saved articles and notes.
+- Persistent Data: Data is safely stored and synced across devices.
+- Offline Functionality: Articles and notes remain accessible even without an internet connection, enhancing usability.

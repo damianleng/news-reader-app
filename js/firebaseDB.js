@@ -1,48 +1,45 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { currentUser } from "./auth.js";
+import { db } from "./firebaseConfig.js";
 import {
-  getFirestore,
   collection,
   doc,
   addDoc,
   getDoc,
   getDocs,
+  setDoc,
   deleteDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCLR1zWD2lTHT2pKAi7TpN_dNAx1CSQKr0",
-  authDomain: "news-reader-675c7.firebaseapp.com",
-  projectId: "news-reader-675c7",
-  storageBucket: "news-reader-675c7.firebasestorage.app",
-  messagingSenderId: "117130706996",
-  appId: "1:117130706996:web:fa4145a2e81f23a6a18a61",
-  measurementId: "G-TMW9V3K1C2",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 // Add an article URL to the database
 export async function addNewsToFirebase(news) {
   try {
-    const docRef = await addDoc(collection(db, "news"), news);
+    if (!currentUser) {
+      throw new Error("User is not authenticated!");
+    }
+    const userId = currentUser.uid;
+    console.log("User ID: ", userId);
+    const userRef = doc(db, "users", userId);
+    await setDoc(userRef, { email: currentUser.email }, { merge: true });
+
+    const newsRef = collection(userRef, "news");
+    const docRef = await addDoc(newsRef, news);
     return { id: docRef.id, ...news };
   } catch (error) {
     console.error("Error adding news ", error);
   }
 }
 
-
 // Get articles from the database
 export async function getNewsFromFirebase() {
   const news = [];
   try {
-    const querySnapshot = await getDocs(collection(db, "news"));
+    if (!currentUser) {
+      throw new Error("User is not authenticated!");
+    }
+    const userId = currentUser.uid;
+    const newsRef = collection(doc(db, "users", userId), "news");
+    const querySnapshot = await getDocs(newsRef);
     querySnapshot.forEach((doc) => {
       news.push({ id: doc.id, ...doc.data() });
     });
@@ -55,7 +52,11 @@ export async function getNewsFromFirebase() {
 // Function to get a single news from Firebase by ID
 export async function getNewsFromFirebaseById(id) {
   try {
-    const docRef = doc(db, "news", id);
+    if (!currentUser) {
+      throw new Error("User is not authenticated!");
+    }
+    const userId = currentUser.uid;
+    const docRef = doc(db, "users", userId, "news", id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -73,7 +74,11 @@ export async function getNewsFromFirebaseById(id) {
 // Delete article from the database
 export async function deleteNewsFromFirebase(id) {
   try {
-    await deleteDoc(doc(db, "news", id));
+    if (!currentUser) {
+      throw new Error("User is not authenticated!");
+    }
+    const userId = currentUser.uid;
+    await deleteDoc(doc(db, "users", userId, "news", id));
   } catch (error) {
     console.error("Error deleting news: ", error);
   }
@@ -82,7 +87,11 @@ export async function deleteNewsFromFirebase(id) {
 // Update or add comments in the database
 export async function updateCommentsToFirebase(id, updatedData) {
   try {
-    const newsRef = doc(db, "news", id);
+    if (!currentUser) {
+      throw new Error("User is not authenticated!");
+    }
+    const userId = currentUser.uid;
+    const newsRef = doc(db, "users", userId, "news", id);
     await updateDoc(newsRef, updatedData);
   } catch (error) {
     console.error("Error updating comments: ", error);

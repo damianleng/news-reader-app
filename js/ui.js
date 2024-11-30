@@ -6,6 +6,7 @@ import {
   getNewsFromFirebaseById,
   updateCommentsToFirebase,
 } from "./firebaseDB.js";
+import { currentUser } from "./auth.js";
 
 // Variable to store the URL of the current article
 let currentArticleId = "";
@@ -14,9 +15,6 @@ let currentArticleId = "";
 document.addEventListener("DOMContentLoaded", function () {
   const menus = document.querySelector(".sidenav");
   M.Sidenav.init(menus, { edge: "right" });
-
-  const forms = document.querySelector(".side-form");
-  M.Sidenav.init(forms, { edge: "left" });
 
   const modals = document.querySelectorAll(".modal");
   M.Modal.init(modals);
@@ -171,7 +169,9 @@ export async function displayNews(articles) {
             };" data-id="${article.id}">
               <i class="material-icons">delete</i>
             </a>
-            <a class="waves-effect waves-light blue btn-small note-btn" style="margin-left: 5px;">
+            <a class="waves-effect waves-light blue btn-small note-btn" style="margin-left: 5px; display: ${
+              existingArticle ? "inline-block" : "none"
+            };">
               <i class="material-icons">edit_note</i>
             </a>
           </div>
@@ -282,10 +282,21 @@ async function createDB() {
         autoIncrement: true,
       });
       // store.createIndex("comments", "comments", { unique: false });
+      store.createIndex("userId", "userId", { unique: false }); // Add userId index
     },
   });
   return db;
 }
+
+export async function clearUserData() {
+  const db = await createDB();
+  const tx = db.transaction("news", "readwrite");
+  const store = tx.objectStore("news");
+  await store.clear();
+  await tx.done;
+  console.log("User data cleared from IndexedDB.");
+}
+
 
 // Add News to indexDB
 // Add News to IndexedDB
@@ -323,14 +334,19 @@ async function addNews(news) {
   return { ...news, id: newsId };
 }
 
-async function syncNews() {
+export async function syncNews() {
+  if(!currentUser) {
+    console.error("No authenticated user. Sync aborted.");
+    return;
+  }
+
   const db = await createDB();
+  const userId = currentUser.uid;
+
   const tx = db.transaction("news", "readonly");
   const store = tx.objectStore("news");
   const news = await store.getAll();
   await tx.done;
-
-  console.log("syncing news");
 
   for (const article of news) {
     console.log(article.comments);
@@ -347,21 +363,22 @@ async function syncNews() {
           url: article.url,
           urlToImage: article.urlToImage,
         };
-        const existingNews = await getNewsFromFirebaseById(article.id);
 
-        if (existingNews) {
+        let savedNews;
+        if (article.id && !article.id.startsWith("temp-")) {
           await updateCommentsToFirebase(article.id, {
             comments: article.comments,
           });
-          console.log(`Updated article with ID: ${article.id} in Firebase.`);
+          savedNews = { id: article.id };
         } else {
-          const savedNews = await addNewsToFirebase(newsToSync);
-          article.id = savedNews.id;
-          console.log(`Added new article to Firebase with ID: ${savedNews.id}`);
+          savedNews = await addNewsToFirebase(newsToSync);
         }
+
+        // const savedNews = await addNewsToFirebase(newsToSync);
         const txUpdate = db.transaction("news", "readwrite");
         const storeUpdate = txUpdate.objectStore("news");
-        await storeUpdate.put({ ...article, synced: true });
+        await storeUpdate.delete(article.id);
+        await storeUpdate.put({ ...article, id: savedNews.id, synced: true, userId });
         await txUpdate.done;
       } catch (error) {
         console.error("Error syncing news:", error);
@@ -442,8 +459,8 @@ export async function loadNews() {
     console.log(news);
 
     // Complete the transaction
-    await tx.done;
     displayNews(news);
+    await tx.done;
 
     // if (news.length === 0) {
     //   newsContainer.innerHTML = `
@@ -459,69 +476,59 @@ export async function loadNews() {
 
 // Function to update comments of a news article
 async function updateComments(id, newComment) {
+  if (!id) {
+    console.error("Invalid ID passed to updateComments.");
+    return;
+  }
+
   const db = await createDB();
   const updatedData = { comments: newComment };
+
   if (navigator.onLine) {
     try {
+      // Update comments in Firebase
       await updateCommentsToFirebase(id, updatedData);
+
+      // Update in IndexedDB as well
+      const tx = db.transaction("news", "readwrite");
+      const store = tx.objectStore("news");
+
+      const newsItem = await store.get(id); // Retrieve the existing article
+      if (newsItem) {
+        newsItem.comments = newComment;
+        newsItem.id = id;
+        newsItem.synced = true; // Mark as synced
+        await store.put(newsItem); // Update the entry in IndexedDB
+      } else {
+        console.warn(`News article with ID ${id} not found in IndexedDB.`);
+      }
+
+      await tx.done;
+
+      console.log(`Comment updated successfully for article ID: ${id}`);
     } catch (error) {
-      console.error("Error updating comment in Firebase: ", error);
+      console.error("Error updating comment in Firebase:", error);
     }
   } else {
+    // If offline, update only in IndexedDB
     const tx = db.transaction("news", "readwrite");
     const store = tx.objectStore("news");
 
-    const newsItem = await store.get(id);
-    console.log(newsItem);
+    const newsItem = await store.get(id); // Retrieve the existing article
     if (newsItem) {
-      newsItem.comments = updatedData.comments;
-      newsItem.synced = false;
-      await store.put(newsItem);
-      console.log("Comment updated successfully in IndexedDB!");
+      newsItem.comments = newComment;
+      newsItem.id = id;
+      newsItem.synced = false; // Mark as not synced
+      await store.put(newsItem); // Update the entry in IndexedDB
+    } else {
+      console.warn(`News article with ID ${id} not found in IndexedDB.`);
     }
+
     await tx.done;
+
+    console.log(`Comment saved offline for article ID: ${id}`);
   }
 }
-
-// async function updateComments(id, newComment) {
-//   try {
-//     const db = await createDB();
-
-//     // start a transaction
-//     const tx = db.transaction("news", "readwrite");
-//     const store = tx.objectStore("news");
-
-//     // get the existing news item
-//     const newsItem = await store.get(id);
-
-//     if (newsItem) {
-//       newsItem.comments = newComment;
-
-//       await store.put(newsItem);
-//       console.log("Comment updated successfully in IndexedDB!");
-
-//       if (navigator.onLine) {
-//         try {
-//           const updatedData = { comments: newsItem.comments };
-
-//           await updateCommentsToFirebase(newsItem.id, updatedData);
-//           console.log("Comment updated successfully in Firebase!");
-//         } catch (error) {
-//           console.error("Error updating comment in Firebase: ", error);
-//         }
-//       } else {
-//         console.log(
-//           "Offline: Comment update will be synced to Firebase when online."
-//         );
-//       }
-//     } else {
-//       console.error("News item not found in IndexedDB!");
-//     }
-//     await tx.done;
-//   } catch (error) {
-//     console.error("Error adding or updating comment: ", error);
-//   }
-// }
 
 // Function to check storage usage
 async function checkStorageUsage() {
