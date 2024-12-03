@@ -3,14 +3,14 @@ import { displayNews } from "./ui.js";
 document.addEventListener("DOMContentLoaded", () => {
   // api key
   // const apiKey = "aae057c0722543fab060697044800783";
-  const apiKey = "dc0394e3e50844bcb37ecae471dc56a5";
+  const apiKey = "cc510dc310abc296d7c66e19f91ce701";
   const category = document.body.getAttribute("data-category");
 
   // asynchronous function to fetch the news data
   async function fetchNews() {
     try {
       const response = await fetch(
-        `https://newsapi.org/v2/top-headlines?category=${category}&apiKey=${apiKey}`
+        `https://gnews.io/api/v4/top-headlines?token=${apiKey}&topic=${category}&lang=en`
       );
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText}`);

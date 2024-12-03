@@ -120,8 +120,8 @@ export async function displayNews(articles) {
         <div class="card large">
           <div class="card-image">
             <img src="${
-              article.urlToImage
-                ? article.urlToImage
+              article.image
+                ? article.image
                 : "https://placehold.co/600x400/png"
             }" alt="" />
           </div>
@@ -136,8 +136,8 @@ export async function displayNews(articles) {
       article.description
     )}&source=${encodeURIComponent(
       article.source.name
-    )}&urlToImage=${encodeURIComponent(
-      article.urlToImage
+    )}&image=${encodeURIComponent(
+      article.image
     )}&url=${encodeURIComponent(article.url)}">${article.source.name}</a></span>
             <p>${article.title}</p>
           </div>
@@ -150,8 +150,8 @@ export async function displayNews(articles) {
       article.description
     )}&source=${encodeURIComponent(
       article.source.name
-    )}&urlToImage=${encodeURIComponent(
-      article.urlToImage
+    )}&image=${encodeURIComponent(
+      article.image
     )}&url=${encodeURIComponent(
       article.url
     )}" class="waves-effect waves-red red btn-small ${
@@ -361,7 +361,7 @@ export async function syncNews() {
           source: article.source,
           title: article.title,
           url: article.url,
-          urlToImage: article.urlToImage,
+          image: article.image,
         };
 
         let savedNews;
