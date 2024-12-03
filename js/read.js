@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
       author: params.get("author"),
       description: params.get("description"),
       source: params.get("source"),
-      urlToImage: params.get("urlToImage"),
+      image: params.get("image"),
       url: params.get("url"),
     };
   }
@@ -18,15 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
     articleData.author &&
     articleData.description &&
     articleData.source &&
-    articleData.urlToImage && 
+    articleData.image && 
     articleData.url
   ) {
     document.querySelector(".header").textContent = articleData.title;
     document.querySelector("title").textContent = articleData.title;
     document.querySelector(".author").textContent = articleData.author;
     document.querySelector(".news").textContent = articleData.source;
-    document.querySelector(".materialboxed").src = articleData.urlToImage
-      ? decodeURIComponent(articleData.urlToImage)
+    document.querySelector(".materialboxed").src = articleData.image
+      ? decodeURIComponent(articleData.image)
       : "https://placehold.co/600x400/png";
     document.querySelector(".news-description").textContent = articleData.description;
     document.querySelector(".read-more").setAttribute('href', articleData.url);

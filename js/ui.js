@@ -131,7 +131,7 @@ export async function displayNews(articles) {
             }" href="/pages/read.html?title=${encodeURIComponent(
       article.title
     )}&author=${encodeURIComponent(
-      article.author
+      article.source.name
     )}&description=${encodeURIComponent(
       article.description
     )}&source=${encodeURIComponent(
@@ -145,7 +145,7 @@ export async function displayNews(articles) {
             <a href="/pages/read.html?title=${encodeURIComponent(
               article.title
             )}&author=${encodeURIComponent(
-      article.author
+      article.source.name
     )}&description=${encodeURIComponent(
       article.description
     )}&source=${encodeURIComponent(
@@ -353,7 +353,7 @@ export async function syncNews() {
     if (!article.synced && navigator.onLine) {
       try {
         const newsToSync = {
-          author: article.author,
+          author: article.source.name,
           comments: article.comments,
           content: article.content,
           description: article.description,
