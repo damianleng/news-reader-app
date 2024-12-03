@@ -1,4 +1,4 @@
-const CACHE_NAME = "news-reader-v3.7";
+const CACHE_NAME = "news-reader-v3.8";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
