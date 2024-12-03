@@ -139,3 +139,9 @@ With these features, the NewsReader app provides:
 - Secure Access: Each user has exclusive access to their saved articles and notes.
 - Persistent Data: Data is safely stored and synced across devices.
 - Offline Functionality: Articles and notes remain accessible even without an internet connection, enhancing usability.
+
+## Live Website Deployment using Firebase Hosting
+The application has been deployed using Firebase Hosting for live access.
+
+### Live URL
+Production Development: https://news-reader-675c7.web.app/
