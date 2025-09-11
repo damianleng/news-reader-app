@@ -1,0 +1,198 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless PWA Backend (Phase 2)
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 256
+    Architectures:
+    - x86_64
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: news-users
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName: web
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - implicit
+      AllowedOAuthScopes:
+      - openid
+      - email
+      CallbackURLs:
+      - https://example.com/auth/callback
+      LogoutURLs:
+      - https://example.com/auth/callback
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain:
+        Fn::Sub: news-${AWS::AccountId}
+      UserPoolId:
+        Ref: UserPool
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: cognito-auth
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      RestApiId:
+        Ref: RestApi
+      ProviderARNs:
+      - Fn::GetAtt:
+        - UserPool
+        - Arn
+  ArticlesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: articles
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: category
+        AttributeType: S
+      - AttributeName: publishedAt#
+        AttributeType: S
+      KeySchema:
+      - AttributeName: category
+        KeyType: HASH
+      - AttributeName: publishedAt#
+        KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+  SavedTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: saved
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: userId
+        AttributeType: S
+      - AttributeName: articleId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: userId
+        KeyType: HASH
+      - AttributeName: articleId
+        KeyType: RANGE
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: NewsPwaApi
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn:
+              Fn::GetAtt:
+              - UserPool
+              - Arn
+  ListNewsFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ListNewsFn
+      Handler: news.listHandler
+      Environment:
+        Variables:
+          ARTICLES_TABLE:
+            Ref: ArticlesTable
+          NEWS_API_KEY: aae057c0722543fab060697044800783
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: ArticlesTable
+      Events:
+        ApiGetNews:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /news
+            Method: GET
+    Metadata:
+      SamResourceId: ListNewsFn
+  GetArticleFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: GetArticleFn
+      Handler: news.getHandler
+      Environment:
+        Variables:
+          ARTICLES_TABLE:
+            Ref: ArticlesTable
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: ArticlesTable
+      Events:
+        ApiGetArticle:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /article/{id}
+            Method: GET
+    Metadata:
+      SamResourceId: GetArticleFn
+  SavedFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: SavedFn
+      Handler: saved.handler
+      Environment:
+        Variables:
+          SAVED_TABLE:
+            Ref: SavedTable
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: SavedTable
+      Events:
+        GetSaved:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /saved
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        PutSaved:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /saved
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteSaved:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /saved
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+    Metadata:
+      SamResourceId: SavedFn
+Outputs:
+  DeployedAt:
+    Description: when this stack was last updated
+    Value: '2025-09-08T20:00:00Z'
+  ApiUrl:
+    Value:
+      Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/prod
