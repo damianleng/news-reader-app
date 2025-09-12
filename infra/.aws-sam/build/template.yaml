@@ -92,6 +92,10 @@ Resources:
       Name: NewsPwaApi
       StageName: prod
       EndpointConfiguration: REGIONAL
+      Cors:
+        AllowMethods: '''OPTIONS,GET,PUT,DELETE'''
+        AllowHeaders: '''Content-Type,Authorization'''
+        AllowOrigin: '''*'''
       Auth:
         Authorizers:
           CognitoAuthorizer:
@@ -185,8 +189,6 @@ Resources:
               Ref: RestApi
             Path: /saved
             Method: DELETE
-            Auth:
-              Authorizer: CognitoAuthorizer
     Metadata:
       SamResourceId: SavedFn
 Outputs:
