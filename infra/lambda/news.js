@@ -10,6 +10,14 @@ const table = process.env.ARTICLES_TABLE;
 const CACHE_TTL_SECONDS = 300;
 const nowEpoch = () => Math.floor(Date.now() / 1000);
 
+// Common headers for all responses
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "OPTIONS,GET,PUT,DELETE",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  "Content-Type": "application/json",
+};
+
 // function to query documents from dynamodb
 exports.listHandler = async (event) => {
   const qs = event.queryStringParameters || {};
@@ -27,7 +35,7 @@ exports.listHandler = async (event) => {
     console.log("Serving from cache");
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: corsHeaders,
       body: JSON.stringify({ items: cached.Item.items }),
     };
   }
@@ -70,7 +78,7 @@ exports.listHandler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: corsHeaders,
     body: JSON.stringify({ items }),
   };
 };
