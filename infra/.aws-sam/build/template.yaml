@@ -189,6 +189,8 @@ Resources:
               Ref: RestApi
             Path: /saved
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
     Metadata:
       SamResourceId: SavedFn
 Outputs:

@@ -56,12 +56,14 @@ exports.handler = async (event) => {
     }
 
     if (method === "DELETE") {
-      const qs = event.queryStringParameters || {};
-      if (!qs) return bad(400, "Missing articleId");
+      const body = JSON.parse(event.body || "{}");
+      if (!body.articleId) {
+        return bad(400, "Missing articleId");
+      }
       await ddb.send(
         new DeleteCommand({
           TableName: table,
-          Key: { userId: userId, articleId: qs.articleId },
+          Key: { userId, articleId: body.articleId },
         })
       );
       return ok({ deleted: true });
@@ -69,7 +71,7 @@ exports.handler = async (event) => {
 
     return bad(405, "Method not allowed");
   } catch (e) {
-    console.error("Error in /saved:", err);
+    console.error("Error in /saved:", e);
     return bad(500, "Internal server error");
   }
 };
