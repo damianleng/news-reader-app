@@ -21,7 +21,7 @@ const corsHeaders = {
 // function to query documents from dynamodb
 exports.listHandler = async (event) => {
   const qs = event.queryStringParameters || {};
-  const category = (qs.category || "technology").toLowerCase();
+  const category = (qs.category || "general").toLowerCase();
 
   // read cache
   const cached = await ddb.send(
@@ -31,7 +31,6 @@ exports.listHandler = async (event) => {
     })
   );
 
-  // pROblems here
   if (cached.Item && nowEpoch() - cached.Item.cachedAt < CACHE_TTL_SECONDS) {
     console.log("Serving from cache");
     return {
