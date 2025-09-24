@@ -48,6 +48,8 @@ exports.handler = async (event) => {
             title: body.title,
             url: body.url,
             category: body.category || "general",
+            source: body.source || "unknown",
+            imageUrl: body.imageUrl || null,
             savedAt: Date.now(),
           },
         })
