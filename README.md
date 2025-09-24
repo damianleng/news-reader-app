@@ -144,4 +144,4 @@ With these features, the NewsReader app provides:
 The application has been deployed using Firebase Hosting for live access.
 
 ### Live URL
-Production Development: d32ge3kaw1oyfw.cloudfront.net
+Production Development: [Live](d32ge3kaw1oyfw.cloudfront.net)
